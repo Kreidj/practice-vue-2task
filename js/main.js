@@ -7,7 +7,8 @@ const app = new Vue({
                     title: 'First',
                     cards: [],
                     maxCards: 3,
-                    locked: false
+                    locked: false,
+                    checkboxVisibility: false,
                 },
                 {
                     title: 'Second',
@@ -26,7 +27,9 @@ const app = new Vue({
             maxNumberOfItems: 5,
             editedCard: null,
             isEditing: false,
+            firstColumnCards: [],
             firstColumnLocked: false,
+            hideCheckboxesInFirstColumn: false,
         };
     },
     methods: {
@@ -48,6 +51,24 @@ const app = new Vue({
                     this.unlockFirstColumn();
                     secondColumn.locked = false;
                 }
+
+                if (secondColumn.cards.length === secondColumn.maxCards && this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
+                    this.columns[0].checkboxVisibility = true;
+                } else {
+                    this.columns[0].checkboxVisibility = false;
+                }
+
+                if (secondColumn.cards.length === secondColumn.maxCards && this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
+                    const firstColumnCheckboxes = document.querySelectorAll('#app .column:first-child .card-item input[type="checkbox"]');
+                    firstColumnCheckboxes.forEach(checkbox => {
+                        checkbox.disabled = true;
+                    });
+                } else {
+                    const firstColumnCheckboxes = document.querySelectorAll('#app .column:first-child .card-item input[type="checkbox"]');
+                    firstColumnCheckboxes.forEach(checkbox => {
+                        checkbox.disabled = false;
+                    });
+                }
             } else {
                 secondColumn.locked = false;
 
@@ -66,6 +87,13 @@ const app = new Vue({
                             this.moveCard(card, targetColumnIndex);
                         });
                     }
+                }
+
+                if (secondColumn.cards.length === secondColumn.maxCards && this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
+                    const firstColumnCheckboxes = document.querySelectorAll('#app .column:first-child .card-item input[type="checkbox"]');
+                    firstColumnCheckboxes.forEach(checkbox => {
+                        checkbox.disabled = true;
+                    });
                 }
             }
 
@@ -309,6 +337,8 @@ const app = new Vue({
         if (savedColumns) {
             this.columns = savedColumns;
         }
+
+        this.firstColumnCards = this.columns[0].cards; // Initialize the firstColumnCards array
 
         this.checkFirstColumnCards();
         this.checkColumnStatus();
