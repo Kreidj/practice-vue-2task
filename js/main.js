@@ -54,6 +54,19 @@ const app = new Vue({
                 if (this.columns[0].cards.some(card => card.completedItems >= card.items.length / 2)) {
                     this.unlockFirstColumn();
                 }
+
+                // Check if there is an available spot in the second column
+                if (secondColumn.cards.length < secondColumn.maxCards) {
+                    // Check if there are cards in the first column with completed items more than 50%
+                    const halfCompletedCards = this.columns[0].cards.filter(card => card.completedItems >= card.items.length / 2);
+
+                    if (halfCompletedCards.length > 0) {
+                        halfCompletedCards.forEach(card => {
+                            const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
+                            this.moveCard(card, targetColumnIndex);
+                        });
+                    }
+                }
             }
 
             this.checkSecondColumnStatus();
@@ -63,7 +76,16 @@ const app = new Vue({
                 console.log('Card has been moved from "Second" to "Third":', movedCard.title);
             }
         },
+        checkFirstColumnCards() {
+            const firstColumn = this.columns[0];
 
+            firstColumn.cards.forEach(card => {
+                if (card.completedItems >= card.items.length / 2) {
+                    const targetColumnIndex = this.columns.findIndex(column => column.title === 'Second');
+                    this.moveCard(card, targetColumnIndex);
+                }
+            });
+        },
         checkSecondColumnStatus() {
             const secondColumn = this.columns[1];
 
@@ -206,6 +228,7 @@ const app = new Vue({
                 card.completedAt = new Date().toLocaleString();
             }
 
+
             this.checkColumnStatus();
             this.checkCardCompletion(card);
         },
@@ -285,8 +308,10 @@ const app = new Vue({
         const savedColumns = JSON.parse(localStorage.getItem('columns'));
         if (savedColumns) {
             this.columns = savedColumns;
-            this.checkColumnStatus();
         }
+
+        this.checkFirstColumnCards();
+        this.checkColumnStatus();
     },
     updated() {
         localStorage.setItem('columns', JSON.stringify(this.columns));
